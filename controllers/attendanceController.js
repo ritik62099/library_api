@@ -51,28 +51,27 @@ const markAttendance = async (req, res) => {
 };
 
 // Get Today’s Attendance (Only Admin)
-const getTodayAttendance = async (req, res, next) => {
+const getTodayAttendance = async (req, res) => {
   try {
     const start = new Date();
     start.setHours(0, 0, 0, 0);
+
     const end = new Date();
     end.setHours(23, 59, 59, 999);
 
-    const filter = {
+    const records = await Attendance.find({
       time: { $gte: start, $lte: end },
-    };
+      $or: [
+        { admin: req.admin?._id }, // अगर admin है तो उसकी entries
+        { admin: null }            // student QR वाली entries भी आ जाएँ
+      ]
+    }).populate("student");
 
-    // If admin logged in → show only his students
-    if (req.admin) {
-      filter.admin = req.admin._id;
-    }
-
-    const records = await Attendance.find(filter).populate("student");
-    return res.json(records);
+    res.json(records);
   } catch (err) {
-    console.error("🔥 Get attendance error:", err.message);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
   }
 };
+
 
 module.exports = { markAttendance, getTodayAttendance };
