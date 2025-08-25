@@ -66,6 +66,7 @@ const { Attendance } = require("../models/Attendance");
 const { Student } = require("../models/Student");
 
 // Mark Attendance (public)
+// Mark Attendance (Public)
 const markAttendance = async (req, res, next) => {
   try {
     const { studentId } = req.body;
@@ -86,12 +87,14 @@ const markAttendance = async (req, res, next) => {
 
     const attendance = await Attendance.create({
       student: student._id,
+      admin: req.admin ? req.admin._id : null, // ✅ no crash
       time: new Date(),
     });
 
     res.json({ success: true, attendance });
   } catch (err) {
-    next(err);
+    console.error("🔥 Attendance error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
