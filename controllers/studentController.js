@@ -99,10 +99,13 @@ const addStudent = async (req, res, next) => {
   try {
     const student = await Student.create({
       ...req.body,
-      admin: req.admin._id, // ✅ admin bind
+      admin: req.admin._id, // ✅ attach current admin
     });
     res.json(student);
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ error: "Duplicate roll number for this admin." });
+    }
     next(err);
   }
 };
