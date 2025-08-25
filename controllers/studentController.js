@@ -94,11 +94,12 @@
 const { Student } = require("../models/Student");
 
 // Add new student → bind with logged-in admin
+// Add new student
 const addStudent = async (req, res, next) => {
   try {
     const student = await Student.create({
       ...req.body,
-      admin: req.admin._id,  // ✅ ensure student belongs to current admin
+      admin: req.admin._id, // ✅ admin bind
     });
     res.json(student);
   } catch (err) {
@@ -106,7 +107,7 @@ const addStudent = async (req, res, next) => {
   }
 };
 
-// Get all students → only for current admin
+// Get all students (only current admin's students)
 const getStudents = async (req, res, next) => {
   try {
     const students = await Student.find({ admin: req.admin._id }); // ✅ filter by admin
@@ -116,10 +117,13 @@ const getStudents = async (req, res, next) => {
   }
 };
 
-// Get single student → only if belongs to current admin
+// Get single student
 const getStudentById = async (req, res, next) => {
   try {
-    const student = await Student.findOne({ _id: req.params.id, admin: req.admin._id }); // ✅
+    const student = await Student.findOne({
+      _id: req.params.id,
+      admin: req.admin._id, // ✅ only own student
+    });
     if (!student) return res.status(404).json({ error: "Student not found" });
     res.json(student);
   } catch (err) {

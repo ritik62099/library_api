@@ -20,7 +20,6 @@
 
 // module.exports = { Student };
 
-
 const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema({
@@ -30,16 +29,14 @@ const paymentSchema = new mongoose.Schema({
 });
 
 const studentSchema = new mongoose.Schema({
+  admin: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: true }, // ✅ यह field जोड़ो
   name: { type: String, required: true },
-  rollNo: { type: String, required: true, unique: true },
+  rollNo: { type: String, required: true },
   email: String,
   mobile: String,
   address: String,
   monthlyFee: Number,
   payments: [paymentSchema],
-
-  // ✅ Add admin field to link student → admin
-  admin: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: true },
 });
 
 const Student = mongoose.model("Student", studentSchema);
