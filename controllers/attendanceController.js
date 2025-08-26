@@ -6,15 +6,22 @@ const markAttendance = async (req, res) => {
   try {
     console.log("📩 Attendance request body:", req.body);
 
-    const { studentId } = req.body;
-    if (!studentId) {
-      console.log("❌ Missing studentId");
-      return res.status(400).json({ error: "Student ID is required" });
+    const { studentId, name, rollNo } = req.body;
+
+    let student;
+
+    if (studentId) {
+      // ✅ Agar admin call kare to ID use kar le
+      student = await Student.findById(studentId);
+    } else if (name && rollNo) {
+      // ✅ Agar student khud mark kare to name + rollNo se find kar le
+      student = await Student.findOne({
+        name: new RegExp("^" + name + "$", "i"),
+        rollNo: new RegExp("^" + rollNo + "$", "i"),
+      });
     }
 
-    const student = await Student.findById(studentId);
     if (!student) {
-      console.log("❌ Student not found:", studentId);
       return res.status(404).json({ error: "Student not found" });
     }
 
@@ -31,20 +38,34 @@ const markAttendance = async (req, res) => {
     });
 
     if (existing) {
-      console.log("⚠️ Already marked for:", student._id);
       return res.status(400).json({ error: "Attendance already marked today" });
     }
 
     // Save attendance
     const attendance = await Attendance.create({
       student: student._id,
-      // admin: req.admin ? req.admin._id : null, // optional
-      admin: req.admin && req.admin._id ? req.admin._id : null,
+      admin: req.admin ? req.admin._id : null, // ✅ agar admin hoga to save kar le
       time: new Date(),
     });
 
-    console.log("✅ Attendance saved:", attendance);
-    return res.json({ success: true, attendance });
+    // Calculate next payment month
+    const lastPaid = student.payments
+      ?.filter((p) => p.paid)
+      .sort((a, b) => a.month.localeCompare(b.month))
+      .pop();
+
+    let nextMonth = new Date();
+    if (lastPaid) {
+      const [year, month] = lastPaid.month.split("-").map(Number);
+      nextMonth = new Date(year, month, 1);
+    }
+
+    const nextDue = nextMonth.toLocaleString("default", {
+      month: "long",
+      year: "numeric",
+    });
+
+    return res.json({ success: true, student, attendance, nextDue });
   } catch (err) {
     console.error("🔥 Attendance error:", err);
     return res.status(500).json({ error: err.message || "Server error" });
