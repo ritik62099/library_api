@@ -38,7 +38,8 @@ const markAttendance = async (req, res) => {
     // Save attendance
     const attendance = await Attendance.create({
       student: student._id,
-      admin: req.admin ? req.admin._id : null, // optional
+      // admin: req.admin ? req.admin._id : null, // optional
+      admin: req.admin && req.admin._id ? req.admin._id : null,
       time: new Date(),
     });
 
