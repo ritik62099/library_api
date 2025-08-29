@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema({
@@ -10,7 +11,6 @@ const studentSchema = new mongoose.Schema({
   admin: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: true },
   name: { type: String, required: true },
   rollNo: { type: String, required: true },
-  email: String, // optional
   mobile: String,
   address: String,
   monthlyFee: Number,
@@ -21,6 +21,5 @@ const studentSchema = new mongoose.Schema({
 studentSchema.index({ admin: 1, rollNo: 1 }, { unique: true });
 
 const Student = mongoose.model("Student", studentSchema);
-
 
 module.exports = { Student };
